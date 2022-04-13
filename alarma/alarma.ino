@@ -16,9 +16,7 @@ bool alarma = false;
 // Códigos de envio serial
 //0 = Alarma
 //1 = Contraseña correcta por keypad
-//2= contraseña incorrecta
-//3= Contraseña correcta
-                    
+//2 = Apagar alarma                  
 
 const byte rows = 4; //4 filas
 const byte cols = 4; //4 columnas
