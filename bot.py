@@ -2,63 +2,76 @@
 import serial
 import time
 from telegram.ext import (Updater, CommandHandler)
+import logging
+
+from telegram import Update, ForceReply
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
 def start(update, context):
     ''' START '''
     # Enviar un mensaje a un ID determinado.
+    global chat_id
+    chat_id = update.message.chat_id
     context.bot.send_message(update.message.chat_id, "Bienvenido")
+
+#No detecta bien la contraseña
 
 def passwd(update, context):
     try:
-        passwd = int(context.args[0])
+        passwd = context.args[0]
         if passwd == "1234":
             update.message.reply_text('Contraseña correcta, apagando alarma')
             arduino.write(b'3')
+        else:
+            update.message.reply_text('Contraseña incorrecta.')
     except (IndexError, ValueError):
         update.message.reply_text('Introduzca un parámetro de contraseña válido')
 
-def write_read(x):
-    arduino.write(bytes(x, 'utf-8'))
-    time.sleep(0.05)
-    data = arduino.readline()
-    return data
-
-def cero():
+def cero(dp):
+    global alarma
     alarma = 1
-    #virtual.write(b'3')
+    dp.bot.sendMessage(chat_id=chat_id, text='¡Alarma activa! Por favor escriba la contraseña con el comando /passwd contraseña')
     print("cero")
  
-def uno():
+def uno(dp):
+    global alarma
     alarma = 0
     print("uno")
  
-def dos():
+def dos(dp):
+    global alarma
     alarma = 0
     print("dos")
 
-def tres():
+def tres(dp):
+    global alarma
     alarma = 0
     print("tres")
+
+def error(dp):
+    print('error en diccionario')
+
+#Hacer comprobación de inicializacion del bot
  
-def switch(argument):
+def switch(argument,dp):
     print(argument)
     
     switcher = {
         b'0': cero,
         b'1': uno,
         b'2': dos,
-        b'3': tres,
+        b'3': tres
     }
     
     # Get the function from switcher dictionary
-    func = switcher.get(argument, lambda: "Invalid month")
+    func = switcher.get(argument, error)
     # Execute the function
-    func()
+    func(dp)
 
 def main():
+    global arduino, virtual, alarma
     arduino = serial.Serial('/dev/pts/1', 9600)
     virtual = serial.Serial('/dev/pts/2', 9600)
-
     alarma = 0
 
     TOKEN="5231442515:AAGAdYf_kHlcm07JRwXp98uKiUdCE0_k51M"
@@ -77,7 +90,7 @@ def main():
     while True:
             time.sleep(0.1)
             rawString = arduino.read()
-            switch(rawString)
+            switch(rawString,dp)
             #if rawString==b'0':
                 #alarma = true
                 #print(rawString)
